@@ -68,15 +68,14 @@ for train_index, test_index in loo.split(X):
     Y_pred = model.predict(X_test)
 
     # 计算 MSE 和 MAE
-    mse = mean_squared_error(Y_test, Y_pred)
-    mae = mean_absolute_error(Y_test, Y_pred)
+    # 乘100还原原始数据
+    mse = mean_squared_error(Y_test*100, Y_pred*100)
+    mae = mean_absolute_error(Y_test*100, Y_pred*100)
 
     # 将结果添加到列表中
     mse_scores.append(mse)
     mae_scores.append(mae)
 
-print(len(mse_scores),len(mae_scores))
-print(mse_scores)
 # 计算平均 MSE 和 MAE
 mean_mse = np.mean(mse_scores)
 mean_mae = np.mean(mae_scores)
@@ -85,5 +84,6 @@ print("Mean MAE:", mean_mae)
 print("Mean MSE:", mean_mse)
 
 
-# Mean MAE: 0.30206813474023153
-# Mean MSE: 0.1411896649603896
+# 当前数据集长度为:  63  特征长度为:  9
+# Mean MAE: 30.206814
+# Mean MSE: 1411.8969

@@ -131,8 +131,8 @@ def loo_cv(hypers, X, Y, early_stopping_patience):
         likelihood.eval()
         with torch.no_grad():
             pred_dist = likelihood(model(val_x_fold))
-            mae = mean_absolute_error(pred_dist.mean, val_y_fold)
-            mse = mean_squared_error(pred_dist.mean, val_y_fold)
+            mae = mean_absolute_error(100*pred_dist.mean, 100*val_y_fold)
+            mse = mean_squared_error(100*pred_dist.mean, 100*val_y_fold)
             all_mae.append(mae)
             all_mse.append(mse)
 
@@ -153,8 +153,7 @@ hypers = {
 # 对于每一种超参数组合，都会有一个score，score的计算方式为LOO-CV计算平均的MAE
 mae, mse = loo_cv(hypers, X, Y, early_stopping_patience=10)
 
-
 # 当前数据集长度为:  63  特征长度为:  9
 # 当前超参数:  {'likelihood.noise_covar.noise': 1.0, 'covar_module.base_kernel.lengthscale': 0.01, 'lr': 0.001}
 # length mae&mse:  63 63
-# 验证集平均MAE: 0.1731795370578766, 平均MSE: 0.10999322682619095
+# 验证集平均MAE: 17.317956924438477, 平均MSE: 1099.932373046875

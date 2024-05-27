@@ -130,6 +130,8 @@ def loo_cv(hypers, X, Y, early_stopping_patience):
         with torch.no_grad():
             pred = model(val_x_fold)
             pred = pred.squeeze()
+            pred = 100*pred
+            val_y_fold = 100*val_y_fold
             mae = torch.mean(torch.abs(pred - val_y_fold))
             mse = torch.mean((pred - val_y_fold)**2)
             all_mae.append(mae)
@@ -154,6 +156,6 @@ mae, mse = loo_cv(hypers, X, Y, early_stopping_patience=10)
 
 
 # 当前数据集长度为:  63  特征长度为:  9
-# 当前超参数:  {'lr': 0.001, 'activation': <function elu at 0x00000264EFA9C7C0>, 'optimizer': <class 'torch.optim.adam.Adam'>}
+# 当前超参数:  {'lr': 0.001, 'activation': <function elu at 0x00000195A535C7C0>, 'optimizer': <class 'torch.optim.adam.Adam'>}
 # length mae&mse:  63 63
-# 验证集平均MAE: 0.12180954962968826, 平均MSE: 0.03905138745903969
+# 验证集平均MAE: 12.180956840515137, 平均MSE: 390.5138854980469
