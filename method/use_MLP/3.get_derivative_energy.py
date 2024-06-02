@@ -60,7 +60,7 @@ def calculate_partial_derivative(input_features):
     # 预测电流密度为0时能量密度
     input_features0 = input_features.copy()
     input_features0[-1] = 0
-    energy0 = predict_energy_density(input_features0)
+    # energy0 = predict_energy_density(input_features0)
 
 
     for current_delta in current_delta_list:
@@ -73,8 +73,10 @@ def calculate_partial_derivative(input_features):
         energy_delta_add = energy_add - energy_orgin
         energy_delta_sub = energy_orgin - energy_sub
 
-        derivative1 = energy_delta_add / (current_delta * energy0)
-        derivative2 = energy_delta_sub / (current_delta * energy0)
+        # derivative1 = energy_delta_add / (current_delta * energy0)
+        # derivative2 = energy_delta_sub / (current_delta * energy0)
+        derivative1 = energy_delta_add / current_delta
+        derivative2 = energy_delta_sub / current_delta
         derivative = 999.0
 
         if derivative1 == 0 or derivative2 == 0: # 偏导数为0
@@ -125,16 +127,16 @@ def get_all_derivative():
 
     print("开始保存所有电流密度和偏导数...")
     # 保存数组到 CSV 文件
-    np.savetxt(f'../../predictions/all_current_derivative_by_mlp.csv', all_current_derivative, delimiter=',')
+    np.savetxt(f'../../predictions/all_current_derivative_by_mlp_withoutE0.csv', all_current_derivative, delimiter=',')
     print("保存成功！")
     # 读取 CSV 文件中的数组
-    data_array_loaded = np.loadtxt(f'../../predictions/all_current_derivative_by_mlp.csv', delimiter=',')
+    data_array_loaded = np.loadtxt(f'../../predictions/all_current_derivative_by_mlp_withoutE0.csv', delimiter=',')
 
     print(data_array_loaded.shape)
 
 # 计算组分与偏导数、能量密度的相关性系数
 def calculating_correlation_no_data_preprocessing():
-    all_current_derivative = np.loadtxt(f'../../predictions/all_current_derivative_by_mlp.csv', delimiter=',')
+    all_current_derivative = np.loadtxt(f'../../predictions/all_current_derivative_by_mlp_withoutE0.csv', delimiter=',')
     components = ['Se', 'Sb', 'Cu', 'Bi', 'Pb', 'Sn', 'Te', 'Zn']
     # 组分和偏导数的相关性系数
     correlation = {'Se': [], 'Sb': [], 'Cu': [], 'Bi': [], 'Pb': [], 'Sn': [], 'Te': [], 'Zn': []}
@@ -327,7 +329,7 @@ model = get_best_model()
 # 计算皮尔逊系数和Spearman相关系数
 correlation_de, correlation_en, sp_de, sp_en  = calculating_correlation_no_data_preprocessing()
 # 计算MI
-all_de_scores, all_en_scores = calculating_MI()
+# all_de_scores, all_en_scores = calculating_MI()
 
 
 print("偏导的皮尔逊系数: ")
@@ -338,28 +340,6 @@ print("能量密度的皮尔逊系数: ")
 for delta_value in range(5):
     sorted_components = sort_components_descending(correlation_en, delta_value)
     print(f"current delta = 1e-{delta_value + 2}, sorted components:", ">".join(sorted_components))
-
-# 绝对值
-print("|偏导|的皮尔逊系数: ")
-for delta_value in range(5):
-    abs_p_de = {key: [abs(num) for num in value] for key, value in correlation_de.items()}
-    sorted_components = sort_components_descending(abs_p_de, delta_value)
-    print(f"current delta = 1e-{delta_value + 2}, sorted components:", ">".join(sorted_components))
-print("|能量密度|的皮尔逊系数: ")
-for delta_value in range(5):
-    abs_p_en = {key: [abs(num) for num in value] for key, value in correlation_en.items()}
-    sorted_components = sort_components_descending(abs_p_en, delta_value)
-    print(f"current delta = 1e-{delta_value + 2}, sorted components:", ">".join(sorted_components))
-
-print("偏导的MI:")
-for i, de_mi_dict in enumerate(all_de_scores):
-    print(f"current delta = 1e-{i+2}, sorted components:",
-          ">".join([feature for feature, _ in sorted(de_mi_dict.items(), key=lambda x: x[1], reverse=True)]))
-print("能量密度的MI:")
-for i, en_mi_dict in enumerate(all_en_scores):
-    print(f"current delta = 1e-{i+2}, sorted components:",
-          ">".join([feature for feature, _ in sorted(en_mi_dict.items(), key=lambda x: x[1], reverse=True)]))
-
 print("偏导的Spearman系数: ")
 for delta_value in range(5):
     sorted_components = sort_components_descending(sp_de, delta_value)
@@ -369,113 +349,77 @@ for delta_value in range(5):
     sorted_components = sort_components_descending(sp_en, delta_value)
     print(f"current delta = 1e-{delta_value + 2}, sorted components:", ">".join(sorted_components))
 
-# 偏导等于0的数量: [0, 0, 0, 13, 198230]
-# 偏导反向的数量: [0, 0, 0, 0, 29153]
-# 偏导同向且大于0的数量: [10956, 10956, 10956, 10955, 4019]
-# 偏导同向且小于0的数量(实际所使用的数据集): [289377, 289377, 289377, 289365, 68931]
-# 所有偏导数的均值: [-0.016509502724984186, -0.01650419714676748, -0.016615316676797765, 0.025813215809237334, 562.3991541998298]
+# MLP
+# 开始计算所有213928种组合的偏导数...
+# 计算进度: 100%|██████████| 213928/213928 [01:04<00:00, 3336.59组合/s]
+# 计算完成！
+# 开始保存所有电流密度和偏导数...
+# 保存成功！
+# (213928, 15)
+# 偏导等于0的数量: [0, 0, 0, 18, 152085]
+# 偏导反向的数量: [0, 0, 0, 0, 13563]
+# 偏导同向且大于0的数量: [0, 0, 0, 0, 43]
+# 偏导同向且小于0的数量(实际所使用的数据集): [213928, 213928, 213928, 213910, 48237]
+# 所有偏导数的均值: [-0.08518769597368382, -0.08518919170399859, -0.08532747685929332, -5.043773304118406e-05, 646.8342049081824]
 # 组分和偏导的皮尔逊相关系数:
-# Se: [0.1107926681158315, 0.11075557196625531, 0.11046933196258976, 0.11183730693752329, 0.11845960457509443]
-# Sb: [0.09997147969038421, 0.09993325863318418, 0.09968608925208641, 0.10132292138748598, 0.11629847597196746]
-# Cu: [0.0971406387979728, 0.09710895242296513, 0.09686978742142233, 0.0987815921211055, 0.11271609986237785]
-# Bi: [0.03373719799348082, 0.033725353828604324, 0.03352553603613848, 0.03587252876027125, 0.09848761130642002]
-# Pb: [-0.1322423100786291, -0.13224050354491357, -0.1321221973882136, -0.12681558582504004, -0.024683509215864936]
-# Sn: [-0.6678381750405153, -0.6679797295224725, -0.6688420449019303, -0.6640949974413265, -0.44144653397746264]
-# Te: [0.4077062282559885, 0.40785719429938644, 0.408840432042355, 0.40065136697112236, 0.26968522266891504]
-# Zn: [0.07950118640730276, 0.0794686822904473, 0.07923003355970588, 0.08151010997956427, 0.12503010540349]
+# Se: [-0.009151790086114811, -0.009159657778738096, -0.009436665643491306, -0.007366988325819413, -0.26314703682818696]
+# Sb: [-0.15090772019379547, -0.15106977174208608, -0.151033716703211, -0.11791662627595574, -0.2651621553814504]
+# Cu: [-0.06832173190997477, -0.06835045609012548, -0.06896079502942547, -0.05060627095985196, -0.20253296424040892]
+# Bi: [0.004170521388950588, 0.004212215838701976, 0.004317455467956563, -0.0003197760397388759, 0.05459323094323564]
+# Pb: [0.2575477699782836, 0.2577487481807492, 0.25897229820868717, 0.2024981211076527, 0.47868163270263303]
+# Sn: [0.08583852006263588, 0.08593434725570256, 0.0859803547606181, 0.06292919845124316, 0.31723865342143265]
+# Te: [-0.014974333499615897, -0.015049186339878656, -0.015369092294196883, -0.009095053709137923, -0.29748281706592794]
+# Zn: [-0.1042012357403682, -0.10426623932432702, -0.10446983876693809, -0.08010754869482428, -0.10281257167827682]
 # 组分和能量密度的皮尔逊相关系数:
-# Se: [-0.0009335168759585812, -0.0009335168759585812, -0.0009335168759585812, -0.0009650779033983075, 0.04018015674423104]
-# Sb: [-0.014557825568476299, -0.014557825568476299, -0.014557825568476299, -0.014562935735915708, 0.03466189416382393]
-# Cu: [-0.023570325242181556, -0.023570325242181556, -0.023570325242181556, -0.023596256725827793, 0.028076223226879644]
-# Bi: [-0.18400696305925307, -0.18400696305925307, -0.18400696305925307, -0.18399419146769166, -0.08654421343150102]
-# Pb: [-0.3743182050991092, -0.3743182050991092, -0.3743182050991092, -0.3742913610906112, -0.28395859953029573]
-# Sn: [-0.7646484227104686, -0.7646484227104686, -0.7646484227104686, -0.7646492951740902, -0.757215802338492]
-# Te: [0.7920767170265711, 0.7920767170265711, 0.7920767170265711, 0.7920834173678346, 0.8524101893459665]
-# Zn: [-0.09487806040018835, -0.09487806040018835, -0.09487806040018835, -0.09488511052975368, -0.016690677664825286]
+# Se: [0.31109016242848453, 0.31109016242848453, 0.31109016242848453, 0.31104364571715803, 0.325740214703662]
+# Sb: [0.26941367394364335, 0.26941367394364335, 0.26941367394364335, 0.2695244389081858, 0.3097818046665671]
+# Cu: [0.21045046608024695, 0.21045046608024695, 0.21045046608024695, 0.21045727283880858, 0.23521427896778407]
+# Bi: [-0.1399432976008901, -0.1399432976008901, -0.1399432976008901, -0.13988164701923603, -0.029869181624765744]
+# Pb: [-0.6331204920966423, -0.6331204920966423, -0.6331204920966423, -0.6330777324228033, -0.620924021276881]
+# Sn: [-0.4506916479525001, -0.4506916479525001, -0.4506916479525001, -0.4506477356120215, -0.3795626059405074]
+# Te: [0.3692539940185723, 0.3692539940185723, 0.3692539940185723, 0.36904852622267076, 0.3703464270240778]
+# Zn: [0.06354714117908597, 0.06354714117908597, 0.06354714117908597, 0.06358438863774192, 0.1352608643190197]
 # ============================================
 # 组分和偏导的Spearman系数:
-# Se: [-0.10390581305523947, -0.10402829687859669, -0.10465961470550648, -0.10815883450014208, 0.10108733324247884]
-# Sb: [-0.13295766234745146, -0.13306237890570896, -0.13341807185759738, -0.1361082097782326, 0.09040381524716562]
-# Cu: [-0.1374325320830936, -0.13753685570673754, -0.13815539151437994, -0.14044389257559695, 0.09657602847013191]
-# Bi: [-0.2741462645461842, -0.2743222059129422, -0.2743798242047271, -0.2698997032302767, 0.0765575597886341]
-# Pb: [-0.4176090758035333, -0.41785111045227236, -0.417784594146942, -0.40495370880471016, 0.011712773343165278]
-# Sn: [-0.7427962456112811, -0.7431702245714806, -0.743124404715761, -0.7362019949507407, -0.5842962730130693]
-# Te: [0.8132182669871133, 0.8136554909950606, 0.8139228739754407, 0.8075428514660785, 0.5462933047896991]
-# Zn: [-0.19513524204164212, -0.19523801459946422, -0.19541558971993994, -0.19544010135563955, 0.10389026696134857]
+# Se: [-0.02928141036102333, -0.01960923855617034, -0.028538817309385785, -0.007823221748505605, -0.22927258281119256]
+# Sb: [-0.1277659490976801, -0.13094736066108345, -0.12912927937922103, -0.09167827499685487, -0.2322890993373784]
+# Cu: [-0.06523211168720126, -0.05829018875919084, -0.06873918510933111, -0.03749040460913729, -0.18064741554458874]
+# Bi: [0.01923338900380358, 0.02037455848189602, 0.01987044237812096, -0.008297308609953164, 0.03667066821903236]
+# Pb: [0.16423255439359827, 0.1617488858324811, 0.17220828288124443, 0.10729876647666084, 0.47952490882416005]
+# Sn: [0.05903731761455393, 0.053848469816218214, 0.05827086283811013, 0.020186911640177035, 0.298441391360765]
+# Te: [-0.03400727812975627, -0.031246439401190797, -0.0362474798468085, -0.008415843650294458, -0.2568314750787887]
+# Zn: [-0.06842665449778897, -0.06529059155930443, -0.06742120419067582, -0.05823246024755189, -0.10137657857857946]
 # 组分和能量密度的Spearman系数:
-# Se: [-0.12058852225262864, -0.12058852225262864, -0.12058852225262864, -0.12063247599517449, 0.06516834582833918]
-# Sb: [-0.13294599977002333, -0.13294599977002333, -0.13294599977002333, -0.1329558078249491, 0.060337835637068196]
-# Cu: [-0.14717648594497487, -0.14717648594497487, -0.14717648594497487, -0.14721200067608964, 0.047082903680925006]
-# Bi: [-0.2817524903936552, -0.2817524903936552, -0.2817524903936552, -0.28174311874935415, -0.03519612287576884]
-# Pb: [-0.415562763691147, -0.415562763691147, -0.415562763691147, -0.41553904180061735, -0.19883638967258455]
-# Sn: [-0.7347354403168628, -0.7347354403168628, -0.7347354403168628, -0.7347363736245763, -0.8013869247850949]
-# Te: [0.8167786324635051, 0.8167786324635051, 0.8167786324635051, 0.8167716870764141, 0.789872680994638]
-# Zn: [-0.19504260303037496, -0.19504260303037496, -0.19504260303037496, -0.1950540617560476, 0.029164386960634933]
-# ============================================
-# 组分和偏导的MI:
-# Se: [0.6509798907637836, 0.6286650202069359, 0.6379163694128529, 0.7483202708362491, 0.4248936438668882]
-# Sb: [0.6623812244853857, 0.6497250176226621, 0.6604750719134662, 0.76512391791579, 0.4314351337143614]
-# Cu: [0.670250213515089, 0.6439755760711825, 0.6556323375253905, 0.7671681963717538, 0.48485959247365207]
-# Bi: [0.6885412636396602, 0.6788506292526568, 0.6847672330538686, 0.7828359812069889, 0.5478870728398135]
-# Pb: [0.6878850451777265, 0.6638289876594734, 0.6670287864789866, 0.7406131938087017, 0.7307959383233782]
-# Sn: [0.9794344370669501, 0.9646180985731454, 0.9662478251836313, 1.048660759187943, 1.074084408710171]
-# Te: [1.151635709052084, 1.127966509511496, 1.1422017685253807, 1.2473574415311632, 0.8772085521061475]
-# Zn: [0.6735170398850614, 0.663960025040427, 0.6715411380656198, 0.7839617019734444, 0.4997176120499569]
-# 组分和能量密度的MI:
-# Se: [0.249146899101083, 0.25051924326066244, 0.25012954527230313, 0.25039698521531717, 0.23841013369645525]
-# Sb: [0.23465917595055252, 0.2347725975495103, 0.23456305313047343, 0.23339902933564538, 0.23557649552648385]
-# Cu: [0.2523303306429119, 0.2506240703111744, 0.2519508065534022, 0.25320559214373217, 0.27406384429273123]
-# Bi: [0.36001709623722356, 0.35864636557681706, 0.36132081389025084, 0.3601253750632041, 0.2969351108567482]
-# Pb: [0.40978950262035463, 0.40861532217367635, 0.40774647413260556, 0.40880601768692726, 0.505563558273908]
-# Sn: [0.6143815384146838, 0.618791746076043, 0.6192909138850733, 0.6210512971577571, 0.7843261993583486]
-# Te: [0.7553072104245109, 0.7548899467044294, 0.7525975824345261, 0.754349870224567, 0.7245499431602749]
-# Zn: [0.3508598230023736, 0.3494857361708834, 0.34903879158111284, 0.35171167788943514, 0.27819818948579256]
+# Se: [0.28287070701895217, 0.28287070701895217, 0.28287070701895217, 0.2828326850346414, 0.2859897947417209]
+# Sb: [0.24354206658940622, 0.24354206658940622, 0.24354206658940622, 0.24361982495749882, 0.2703454597671138]
+# Cu: [0.18912629791988603, 0.18912629791988603, 0.18912629791988603, 0.1891059666558541, 0.21189923281202322]
+# Bi: [-0.14450404604948391, -0.14450404604948391, -0.14450404604948391, -0.1444345434722539, -0.015914643357707807]
+# Pb: [-0.5800282883230825, -0.5800282883230825, -0.5800282883230825, -0.5799770472003489, -0.5854223480980763]
+# Sn: [-0.4260757865377441, -0.4260757865377441, -0.4260757865377441, -0.4260145610035132, -0.358702383615292]
+# Te: [0.33575112548070274, 0.33575112548070274, 0.33575112548070274, 0.33562360150517817, 0.3170280709474243]
+# Zn: [0.049510764088406385, 0.049510764088406385, 0.049510764088406385, 0.04952917823687413, 0.13497870856150648]
 # ============================================
 # 偏导的皮尔逊系数:
-# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-6, sorted components: Te>Zn>Se>Sb>Cu>Bi>Pb>Sn
+# current delta = 1e-2, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-3, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-4, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-5, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-6, sorted components: Pb>Sn>Bi>Zn>Cu>Se>Sb>Te
 # 能量密度的皮尔逊系数:
-# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-6, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# |偏导|的皮尔逊系数:
-# current delta = 1e-2, sorted components: Sn>Te>Pb>Se>Sb>Cu>Zn>Bi
-# current delta = 1e-3, sorted components: Sn>Te>Pb>Se>Sb>Cu>Zn>Bi
-# current delta = 1e-4, sorted components: Sn>Te>Pb>Se>Sb>Cu>Zn>Bi
-# current delta = 1e-5, sorted components: Sn>Te>Pb>Se>Sb>Cu>Zn>Bi
-# current delta = 1e-6, sorted components: Sn>Te>Zn>Se>Sb>Cu>Bi>Pb
-# |能量密度|的皮尔逊系数:
-# current delta = 1e-2, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Sb>Se
-# current delta = 1e-3, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Sb>Se
-# current delta = 1e-4, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Sb>Se
-# current delta = 1e-5, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Sb>Se
-# current delta = 1e-6, sorted components: Te>Sn>Pb>Bi>Se>Sb>Cu>Zn
-# 偏导的MI:
-# current delta = 1e-2, sorted components: Te>Sn>Bi>Pb>Zn>Cu>Sb>Se
-# current delta = 1e-3, sorted components: Te>Sn>Bi>Zn>Pb>Sb>Cu>Se
-# current delta = 1e-4, sorted components: Te>Sn>Bi>Zn>Pb>Sb>Cu>Se
-# current delta = 1e-5, sorted components: Te>Sn>Zn>Bi>Cu>Sb>Se>Pb
-# current delta = 1e-6, sorted components: Sn>Te>Pb>Bi>Zn>Cu>Sb>Se
-# 能量密度的MI:
-# current delta = 1e-2, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Se>Sb
-# current delta = 1e-3, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Se>Sb
-# current delta = 1e-4, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Se>Sb
-# current delta = 1e-5, sorted components: Te>Sn>Pb>Bi>Zn>Cu>Se>Sb
-# current delta = 1e-6, sorted components: Sn>Te>Pb>Bi>Zn>Cu>Se>Sb
+# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-6, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
 # 偏导的Spearman系数:
-# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-6, sorted components: Te>Zn>Se>Cu>Sb>Bi>Pb>Sn
+# current delta = 1e-2, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-3, sorted components: Pb>Sn>Bi>Se>Te>Cu>Zn>Sb
+# current delta = 1e-4, sorted components: Pb>Sn>Bi>Se>Te>Zn>Cu>Sb
+# current delta = 1e-5, sorted components: Pb>Sn>Se>Bi>Te>Cu>Zn>Sb
+# current delta = 1e-6, sorted components: Pb>Sn>Bi>Zn>Cu>Se>Sb>Te
 # 能量密度的Spearman系数:
-# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
-# current delta = 1e-6, sorted components: Te>Se>Sb>Cu>Zn>Bi>Pb>Sn
+# current delta = 1e-2, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-3, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-4, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-5, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
+# current delta = 1e-6, sorted components: Te>Se>Sb>Cu>Zn>Bi>Sn>Pb
