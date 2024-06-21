@@ -7,7 +7,7 @@ This repository contains the code and datasets used in the paper titled "Using D
 
 ### Methods
 - **Combinations:** The `method` folder contains 8 elements plus different current density combinations, detailed in `combinations.csv`. You can generate this combinations file by running:
-python 1.get_all_combinations.py
+`python 1.get_all_combinations.py`
 
 - **Models:** Implementation of the three models discussed in the paper can also be found in the `method` folder. The code and models are provided to reproduce the results mentioned at the end of each code snippet. To replicate these results, follow the sequential execution order provided in the code comments.
 
