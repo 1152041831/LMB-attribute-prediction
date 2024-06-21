@@ -331,7 +331,6 @@ def calculating_MI():
 
     return all_de_scores, all_en_scores
 
-
 # 从大到小
 def sort_components_descending(data, delta):
     return sorted(data.keys(), key=lambda x: -float(data[x][delta]))
@@ -340,7 +339,6 @@ def sort_components_ascending(data, delta):
     return sorted(data.keys(), key=lambda x: float(data[x][delta]))
 
 components = ['Se', 'Sb', 'Cu', 'Bi', 'Pb', 'Sn', 'Te', 'Zn']
-
 
 model, likelihood = get_best_model()
 
