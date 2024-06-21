@@ -25,7 +25,6 @@ torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 seed(init_seed)
 
-# 定义高斯过程回归模型
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
@@ -38,8 +37,8 @@ class ExactGPModel(gpytorch.models.ExactGP):
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
 def get_dataset():
-    file_folder = '../../datasets'  # 文件夹名称
-    file_name = 'all_data2.xlsx'  # 文件名
+    file_folder = '../../datasets'  
+    file_name = 'all_data2.xlsx'  
     file_path = os.path.join(file_folder, file_name)
 
     # 使用pandas读取数据
@@ -141,7 +140,6 @@ def loo_cv(hypers, X, Y, early_stopping_patience):
     return np.mean(all_mae), np.mean(all_mse)
 
 
-# 准备数据
 X, Y = get_dataset()
 
 # 使用 LOO-CV 测试平均MSE和MAE
