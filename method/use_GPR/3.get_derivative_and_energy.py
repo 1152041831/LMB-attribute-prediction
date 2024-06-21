@@ -91,12 +91,6 @@ def calculate_partial_derivative(input_features):
 
     energy_orgin = predict_energy_density(input_features)
 
-    # 预测电流密度为0时能量密度
-    input_features0 = input_features.copy()
-    input_features0[-1] = 0
-    # energy0 = predict_energy_density(input_features0)
-
-
     for current_delta in current_delta_list:
         input_features_add = input_features.copy()
         input_features_add[-1] = input_features[-1] + current_delta
@@ -107,8 +101,6 @@ def calculate_partial_derivative(input_features):
         energy_delta_add = energy_add - energy_orgin
         energy_delta_sub = energy_orgin - energy_sub
 
-        # derivative1 = energy_delta_add / (current_delta * energy0)
-        # derivative2 = energy_delta_sub / (current_delta * energy0)
         derivative1 = energy_delta_add / (current_delta)
         derivative2 = energy_delta_sub / (current_delta)
         derivative = 999.0
@@ -334,7 +326,6 @@ def calculating_MI():
     print("组分和能量密度的MI:")
     for key, value in mi_en.items():
         print(f"{key}: {value}")
-
 
     print("============================================")
 
